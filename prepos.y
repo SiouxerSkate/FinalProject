@@ -108,8 +108,3 @@ main()
     printf("---------------------------\n");
 }
 
-yyerror(char *s)
-{
-    printf("\terror: %s\n", s);
-    printf("ERROR: %s at line %d\n", s, 123);
-}

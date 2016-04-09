@@ -15,10 +15,13 @@ typedef struct
 #define YYSTYPE  tstruct
 #include "prepos.tab.h"
 
+
 int lineno = 1;
 int DEBUG = TRUE;
     
 %}
+
+%option yylineno
 
 D         [0-9]
 L         [A-Za-z]
@@ -118,3 +121,9 @@ while     { if (DEBUG) printf("token:  -%s\n",yytext); return twhile; }
 .                    { if (DEBUG) printf("  -%c\n",yytext[0]); return yytext[0]; }
 
 %%
+
+yyerror(char* s)
+{
+	printf("%s at line %d\n", s, yylineno);
+	exit(1);
+}
