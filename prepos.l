@@ -31,24 +31,35 @@ L         [A-Za-z]
 				    return theader;
 				 }
 
-main\(void\)         { 
-    			if (DEBUG) printf("  -%s\n",yytext);
-			strcpy(yylval.thestr,yytext);
-			return tmain;
-		     } 
-main\(\)             { 
-    			if (DEBUG) printf("  -%s\n",yytext); 
-			strcpy(yylval.thestr,yytext);
-			return tmain; 
-		     }
+\#include(" ")+\"{L}+\.{L}\"   { 
+    				    if (DEBUG) printf("header:  -%s\n",yytext);
+				    strcpy(yylval.thestr,yytext); 
+				    return theader;
+				 }
+
+main\(.*\)         		 { 
+    				    if (DEBUG) printf("  -%s\n",yytext);
+				    strcpy(yylval.thestr,yytext);
+				    return tmain;
+		   		 } 
+
+printf(" ")*\(.*\)(';')?    	 { 
+				    if (DEBUG) printf("token:  -%s\n",yytext);
+				    strcpy(yylval.thestr,yytext);
+				    return tprintf; 
+				 }
+
+scanf(" ")*\(.*\)(';')?    	 { 
+				    if (DEBUG) printf("token:  -%s\n",yytext);
+				    strcpy(yylval.thestr,yytext);
+				    return tscanf; 
+				 }
 
 return    { if (DEBUG) printf("token:  -%s\n",yytext); return tret; }
 void	  { if (DEBUG) printf("token:  -%s\n",yytext); return tvoid; }
 int       { if (DEBUG) printf("token:  -%s\n",yytext); return tint; }
 float     { if (DEBUG) printf("token:  -%s\n",yytext); return tfloat; }
 char      { if (DEBUG) printf("token:  -%s\n",yytext); return tchar; }
-printf    { if (DEBUG) printf("token:  -%s\n",yytext); return tprintf; }
-scanf     { if (DEBUG) printf("token:  -%s\n",yytext); return tscanf; }
 else      { if (DEBUG) printf("token:  -%s\n",yytext); return telse; }
 if        { if (DEBUG) printf("token:  -%s\n",yytext); return tif; }
 for       { if (DEBUG) printf("token:  -%s\n",yytext); return tfor; }
@@ -70,13 +81,13 @@ while     { if (DEBUG) printf("token:  -%s\n",yytext); return twhile; }
 			strcpy(yylval.thestr,yytext);
 			return tstrlit;
 		     }
-{L}(L|D|'_')*        { /* C identifier */
+{L}({L}|{D}|'_')*        { /* C identifier */
                         if (DEBUG) printf("id:  -%s\n",yytext);
                         strcpy(yylval.thestr,yytext);
 			return tid;
                      }
 ('+'|'-')?{D}*\.{D}+ { /* signed or unsigned float */
-                        if (DEBUG) printf("float:  -%s\n", yytext);
+                        if (DEBUG) printf("tnum-float:  -%s\n", yytext);
                         yylval.fval = atof(yytext);
 			yylval.ttype = 20;
 			/* 
@@ -86,7 +97,7 @@ while     { if (DEBUG) printf("token:  -%s\n",yytext); return twhile; }
 			return tnum;
                      }
 ('+'|'-')?{D}+       { /* signed or unsigned int */
-                        if (DEBUG) printf("int:  -%s\n",yytext);
+                        if (DEBUG) printf("tnum-int:  -%s\n",yytext);
                         yylval.ival = atoi(yytext);
 			yylval.ttype = 10;
 			/*
