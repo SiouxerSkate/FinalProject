@@ -54,47 +54,43 @@ typedef struct
 
 %%
 
-p	: prog					{ printf("Ok\n"); }
+p	: prog						{ printf("Master of C!\n"); }
 	;
 
-prog	: header main '{' '}'				{}
-	| header main '{' DL SL '}'			{}
+prog	: header main '{' '}'				{ printf("empty program\n"); }
+	| header main '{' DL SL '}'			{ printf("DL & SL good\n"); }
+	| header main '{' DL '}'			{ printf("Just DL\n"); }
+	| header main '{' SL '}'			{ printf("Just SL\n"); }
 	;
 
 header	: /* no headers */
-	| theader header				{}
+	| theader header				{ printf("Header files\n"); }
 	;
 
-main	: tint tmain					{}
-	| tvoid tmain					{}
+main	: tint tmain					{ printf("int main...\n"); }
+	| tvoid tmain					{ printf("void main...\n"); }
 	;
 
 DL	: DL D						{}
 	| D						{}
 	;
 
-D	: type IDL ';'					{}
-	;
-
-IDL	: IDL ',' tid					{}
-	| tid						{}
+D	: type tid tassign tnum ';'			{ printf("Single declaration per line and must be initialized.\n");}
 	;
 
 type	: tint {} | tfloat {} | tchar {} ;			
 
-SL 	: SL S						{}
+SL 	: SL S		 				{}
 	| S						{}
 	;
 
-S	: tprintf '(' tstrlit ')' ';'			{}
-	| tscanf  '(' tstrlit ')' ';'			{}
-	/* separate if into another category */
+S	: tprintf		 			{}
+	| tscanf 		 			{}
 	| tif tid relop tid '{' S '}'			{}
-	/* separate while into iteration category */
 	| twhile '(' tid relop tid ')' '{' S '}'	{}
-	/* separate for into iteration category */
 	| tfor '(' ')' '{' S '}'			{}
 	| tid tassign expr ';'				{}
+	| tret tnum ';'					{}
 	| error ';'					{}
 	;
 
@@ -102,21 +98,8 @@ relop 	: tlt | tgt | tle | tge | teq | tne ;
 
 logop 	: tor | tand | tnot ;
 
-expr	: expr '+' term					{}
-	| expr '-' term					{}
-	| term						{}
+expr 	: /* empty for now */ 
 	;
-
-term	: term '*' factor				{}
-	| term '/' factor				{}
-	| term '%' factor				{}
-	| factor					{}
-	;
-
-factor	: tid						{}
-	| tnum						{}
-	;
-
 %%
 
 main()
