@@ -84,7 +84,12 @@ while     { if (DEBUG) printf("token:  -%s\n",yytext); return twhile; }
 			strcpy(yylval.thestr,yytext);
 			return tstrlit;
 		     }
-{L}({L}|{D}|'_')*        { /* C identifier */
+\'.\'		     {
+			if (DEBUG) printf("chrlit:  -%s\n",yytext);
+			strcpy(yylval.thestr,yytext);
+			return tchrlit;
+		     }
+{L}({L}|{D}|'_')*    { /* C identifier */
                         if (DEBUG) printf("id:  -%s\n",yytext);
                         strcpy(yylval.thestr,yytext);
 			return tid;
