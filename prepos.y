@@ -51,7 +51,7 @@ typedef struct
 %token tstrlit  
 %token tid  
 %token tnum
-
+%token tchrlit
 %%
 
 p	: prog						{ printf("Master of C!\n"); }
@@ -76,6 +76,7 @@ DL	: DL D						{}
 	;
 
 D	: type tid tassign tnum ';'			{ printf("Single declaration per line and must be initialized.\n");}
+	| type tid tassign tchrlit ';'			{}
 	;
 
 type	: tint {} | tfloat {} | tchar {} ;			
