@@ -46,13 +46,13 @@ main\(.*\)         		 {
 				    return tmain;
 		   		 } 
 
-printf(" ")*\(.*\)(';')?    	 { 
+printf(" ")*\(.*\)(" ")*(";")  	 { 
 				    if (DEBUG) printf("token:  -%s\n",yytext);
 				    strcpy(yylval.thestr,yytext);
 				    return tprintf; 
 				 }
 
-scanf(" ")*\(.*\)(';')?    	 { 
+scanf(" ")*\(.*\)(" ")*(";")   	 { 
 				    if (DEBUG) printf("token:  -%s\n",yytext);
 				    strcpy(yylval.thestr,yytext);
 				    return tscanf; 
