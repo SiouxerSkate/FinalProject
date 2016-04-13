@@ -43,18 +43,29 @@ void setuptab(void)
     }
 }
 
-void addtab( char *s)
+void addtab( char *s, int type)
 {
     nsym++;
     strcpy( symtab[nsym].sname, s);
-    symtab[nsym].stype = -1;   
+    symtab[nsym].stype = type;   
+    symtab[nsym].binit = TRUE;         /* since initialization is required upon declaration, set type and binit with name. */
+                                        /* need to set size for arrays */ 
 }
 
 void showtab()
 {
  int i;
  for (i = 1; i <= nsym; ++i)
-   printf("%d: %s %d\n", i, symtab[i].sname, symtab[i].stype);      /* add field for binit */
+ {
+   printf("%d: %s %d", i, symtab[i].sname, symtab[i].stype);
+   if( symtab[i].binit)
+    printf(" initialized ");
+   else
+    printf(" uninitialized ");
+   if (symtab[i].stype == 11 || symtab[i].stype == 22 || symtab[i].stype == 33)
+    printf("bound: ");
+   puts(""); 
+ }  
 }
 
 int intab( char *s)
@@ -82,42 +93,10 @@ int intab( char *s)
      return TRUE;
  }
  
-void addtype( char *s, int t)
-{
- int i, loc = -1;
- for ( i = 1; i <= nsym; ++i)
- {
-   if ( strcmp(symtab[i].sname, s) == 0)
-    loc = i;
- }
- if (loc > 0)
-  {
-   printf("Set type %s to %d\n", s, t);
-   symtab[loc].stype = t;             
-  }
- else
- {
-   printf("Unable to set type %s to %d\n", s, t);
- } 
-}
 
 int initsym( char *s)
 {
  int i, loc = -1;
- for ( i = 1; i <= nsym; ++i)
- {
-   if ( strcmp(symtab[i].sname, s) == 0)
-    loc = i;
- }
- if (loc > 0)
-  {
-   printf("Symbol %s initialized\n", s);
-   symtab[loc].binit = TRUE;          
-  }
- else
- {
-   printf("Unable to initialize %s\n", s);
- } 
 }
 
 

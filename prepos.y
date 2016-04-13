@@ -23,6 +23,8 @@ typedef struct
 
 %}
 
+%error-verbose
+
 %token theader
 %token tmain  
 %token tret   
@@ -53,7 +55,7 @@ typedef struct
 %token tid  
 %token tnum
 %token tchrlit
-%token tintlit
+
 %%
 
 p	: prog						{ 
@@ -62,20 +64,29 @@ p	: prog						{
 							}
 	;
 
+/* should account for all sets of program possibilities at high level */
 prog	: header main '{' '}'				{ printf("empty program\n"); }
 	| header main '{' DL SL '}'			{ printf("DL & SL good\n"); }
 	| header main '{' DL '}'			{ printf("Just DL\n"); }
 	| header main '{' SL '}'			{ printf("Just SL\n"); }
 	;
 
+/* includes header files to be transfered over during code generation */
 header	: /* no headers */
 	| theader header				{ printf("Header files\n"); }
 	;
 
+/* should we also add constants and defines? */
+
+/* 
+** main's definition can include int or void as return type
+** tmain includes entire string (e.g. main(int argc, char *argv[]) for code generation
+*/
 main	: tint tmain					{ printf("int main...\n"); }
 	| tvoid tmain					{ printf("void main...\n"); }
 	;
 
+/* if declarations exist, they will always be above statements */
 DL	: DL D						{}
 	| D						{}
 	;
@@ -123,9 +134,18 @@ D	: type tid tassign tnum ';'			{ printf("Single declaration per line and must b
 							  else if ($1.ttype == 30)
 							     addtab($2.thestr, 33); //char array
 							 }
-	;
 
 type	: tint {$$.ttype = 10;} | tfloat {$$.ttype = 20;} | tchar {$$.ttype = 30;} ;			
+
+/* 
+** will allow syntactically correct abitrarily deep nesting of blocks
+** will be good for situations where a single statement is expected or
+** where another block 
+** (e.g., for (...) do something; vs. for (...) { do a lot more }
+*/
+block	: '{' SL '}'					{}
+	| S						{}
+	;
 
 SL 	: SL S		 				{}
 	| S						{}
@@ -133,20 +153,48 @@ SL 	: SL S		 				{}
 
 S	: tprintf		 			{}
 	| tscanf 		 			{}
-	| tif tid relop tid '{' S '}'			{}
-	| twhile '(' tid relop tid ')' '{' S '}'	{}
-	| tfor '(' ')' '{' S '}'			{}
+	| select		 			{}
+	/* while and for will become iteration */ 
+	| twhile '(' cond ')' block			{}
+	| tfor '(' ')' block				{}
 	| tid tassign expr ';'				{}
 	| tret tnum ';'					{}
 	| error ';'					{}
 	;
 
-relop 	: tlt | tgt | tle | tge | teq | tne ;
-
-logop 	: tor | tand | tnot ;
-
-expr 	: /* empty for now */ 
+/*
+** should cover if, if/else, if/else if/else, and
+** if/else if
+** should also allow for nesting of these
+*/
+select	: tif '(' cond ')' block			{}
+	| tif '(' cond ')' block telse block		{}
 	;
+
+/* condition may need to expand to help cover &&, ||, ! */
+cond	: expr relop expr				{}
+	;
+
+relop 	: tlt {} | tgt {} | tle {} | tge {} | teq {} | tne {} ;
+
+/* logop 	: tor {} | tand {} | tnot {} ; */
+
+expr 	: expr '+' term					{}
+	| expr '-' term					{}
+	| term						{}
+	;
+	
+term	: term '*' factor				{}
+	| term '/' factor				{}
+	| term '%' factor				{}
+	| factor					{}
+	;
+
+factor	: tnum						{}
+	| tid						{}
+	| '(' expr ')'					{}
+	;
+
 %%
 
 main()
