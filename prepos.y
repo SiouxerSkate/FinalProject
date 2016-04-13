@@ -13,6 +13,7 @@ typedef struct
  int ival;
  float fval;
  char cval;
+ int arrayBound;
  int ttype;
 }tstruct ; 
 
@@ -52,9 +53,13 @@ typedef struct
 %token tid  
 %token tnum
 %token tchrlit
+%token tintlit
 %%
 
-p	: prog						{ printf("Master of C!\n"); }
+p	: prog						{ 
+							  printf("Master of C!\n");
+							  showtab(); 
+							}
 	;
 
 prog	: header main '{' '}'				{ printf("empty program\n"); }
@@ -75,11 +80,52 @@ DL	: DL D						{}
 	| D						{}
 	;
 
-D	: type tid tassign tnum ';'			{ printf("Single declaration per line and must be initialized.\n");}
-	| type tid tassign tchrlit ';'			{}
+D	: type tid tassign tnum ';'			{ printf("Single declaration per line and must be initialized.\n");
+							  addtab($2.thestr, $1.ttype);
+							}
+	| type tid tassign tchrlit ';'			{ addtab($2.thestr, $1.ttype); }
+        | type tid '[' tnum']'tassign tnum';'	{ 
+							  if ($4.ttype != 10)
+							  {
+							    printf("Array size must be an integer!\n");
+							    exit(1);
+							  }
+							  if ($1.ttype == 10)  
+							     addtab($2.thestr, 11); //int array
+							  else if ($1.ttype == 20)
+							     addtab($2.thestr, 22); //float array
+							  else if ($1.ttype == 30)
+							     addtab($2.thestr, 33); //char array
+							}
+        | type tid '[' tnum ']'tassign tchrlit';' 	{
+							  if ($4.ttype != 10)
+							  {
+							    printf("Array size must be an integer!\n");
+							    exit(1);
+							  }
+							  if ($1.ttype == 10)  
+							     addtab($2.thestr, 11); //int array
+							  else if ($1.ttype == 20)
+							     addtab($2.thestr, 22); //float array
+							  else if ($1.ttype == 30)
+							     addtab($2.thestr, 33); //char array
+							 }
+        | type tid '[' tnum']'tassign tstrlit';' 	{
+							  if ($4.ttype != 10)
+							  {
+							    printf("Array size must be an integer!\n");
+							    exit(1);
+							  }
+							  if ($1.ttype == 10)  
+							     addtab($2.thestr, 11); //int array
+							  else if ($1.ttype == 20)
+							     addtab($2.thestr, 22); //float array
+							  else if ($1.ttype == 30)
+							     addtab($2.thestr, 33); //char array
+							 }
 	;
 
-type	: tint {} | tfloat {} | tchar {} ;			
+type	: tint {$$.ttype = 10;} | tfloat {$$.ttype = 20;} | tchar {$$.ttype = 30;} ;			
 
 SL 	: SL S		 				{}
 	| S						{}
@@ -105,6 +151,7 @@ expr 	: /* empty for now */
 
 main()
 {
+    setuptab();
     yyparse();
     printf("---------------------------\n");
 }

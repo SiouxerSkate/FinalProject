@@ -9,6 +9,7 @@ typedef struct
     int   ival;
     float fval;
     char  cval;
+    int   arrayBound;
     int   ttype;
 }tstruct ;
     
