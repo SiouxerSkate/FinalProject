@@ -93,13 +93,6 @@ int intab( char *s)
      return TRUE;
  }
  
-
-int initsym( char *s)
-{
- int i, loc = -1;
-}
-
-
 int gettype( char *s)
 {
  int t = -1;
