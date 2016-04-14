@@ -91,22 +91,23 @@ DL	: DL D						{}
 	| D						{}
 	;
 
-D	: type tid tassign tnum ';'			{ printf("Single declaration per line and must be initialized.\n");
-							  addtab($2.thestr, $1.ttype);
+D	: type tid tassign tnum ';'			{ 
+							  printf("Single init dec per line.\n");
+							  addtab($2.thestr, $1.ttype, 1);
 							}
-	| type tid tassign tchrlit ';'			{ addtab($2.thestr, $1.ttype); }
-        | type tid '[' tnum']'tassign tnum';'	{ 
+	| type tid tassign tchrlit ';'			{ addtab($2.thestr, $1.ttype, 1); }
+        | type tid '[' tnum']'tassign tnum';'		{ 
 							  if ($4.ttype != 10)
 							  {
 							    printf("Array size must be an integer!\n");
 							    exit(1);
 							  }
 							  if ($1.ttype == 10)  
-							     addtab($2.thestr, 11); //int array
+							     addtab($2.thestr, 11, $4.ival); //int array
 							  else if ($1.ttype == 20)
-							     addtab($2.thestr, 22); //float array
+							     addtab($2.thestr, 22, $4.ival); //float array
 							  else if ($1.ttype == 30)
-							     addtab($2.thestr, 33); //char array
+							     addtab($2.thestr, 33, $4.ival); //char array
 							}
         | type tid '[' tnum ']'tassign tchrlit';' 	{
 							  if ($4.ttype != 10)
@@ -115,11 +116,11 @@ D	: type tid tassign tnum ';'			{ printf("Single declaration per line and must b
 							    exit(1);
 							  }
 							  if ($1.ttype == 10)  
-							     addtab($2.thestr, 11); //int array
+							     addtab($2.thestr, 11, $4.ival); //int array
 							  else if ($1.ttype == 20)
-							     addtab($2.thestr, 22); //float array
+							     addtab($2.thestr, 22, $4.ival); //float array
 							  else if ($1.ttype == 30)
-							     addtab($2.thestr, 33); //char array
+							     addtab($2.thestr, 33, $4.ival); //char array
 							 }
         | type tid '[' tnum']'tassign tstrlit';' 	{
 							  if ($4.ttype != 10)
@@ -128,11 +129,11 @@ D	: type tid tassign tnum ';'			{ printf("Single declaration per line and must b
 							    exit(1);
 							  }
 							  if ($1.ttype == 10)  
-							     addtab($2.thestr, 11); //int array
+							     addtab($2.thestr, 11, $4.ival); //int array
 							  else if ($1.ttype == 20)
-							     addtab($2.thestr, 22); //float array
+							     addtab($2.thestr, 22, $4.ival); //float array
 							  else if ($1.ttype == 30)
-							     addtab($2.thestr, 33); //char array
+							     addtab($2.thestr, 33, $4.ival); //char array
 							 }
 
 type	: tint {$$.ttype = 10;} | tfloat {$$.ttype = 20;} | tchar {$$.ttype = 30;} ;			
