@@ -40,16 +40,17 @@ void setuptab(void)
 	symtab[i].sname[0] = '\0';
 	symtab[i].stype = 0;
 	symtab[i].binit = FALSE;    /* When initialized, we set to TRUE */
+	symtab[i].ssize = 1;	    /* when array is added, change size */
     }
 }
 
-void addtab( char *s, int type)
+void addtab( char *s, int type, int size)
 {
     nsym++;
     strcpy( symtab[nsym].sname, s);
     symtab[nsym].stype = type;   
-    symtab[nsym].binit = TRUE;         /* since initialization is required upon declaration, set type and binit with name. */
-                                        /* need to set size for arrays */ 
+    symtab[nsym].binit = TRUE;  /* since initialization is required upon declaration, set type and binit with name. */
+    symtab[nysm].ssize = size;	/* need to set size for arrays */ 
 }
 
 void showtab()
