@@ -50,7 +50,7 @@ void addtab( char *s, int type, int size)
     strcpy( symtab[nsym].sname, s);
     symtab[nsym].stype = type;   
     symtab[nsym].binit = TRUE;  /* since initialization is required upon declaration, set type and binit with name. */
-    symtab[nysm].ssize = size;	/* need to set size for arrays */ 
+    symtab[nsym].ssize = size;	/* need to set size for arrays */ 
 }
 
 void showtab()
