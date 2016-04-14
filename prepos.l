@@ -59,6 +59,12 @@ scanf(" ")*\(.*\)(" ")*(";")   	 {
 				    return tscanf; 
 				 }
 
+while(" ")*\(.*\)     		 { 
+				    if (DEBUG) printf("token:  -%s\n",yytext); 
+				    strcpy(yylval.thestr,yytext);
+				    return twhile; 
+				 }
+
 return    { if (DEBUG) printf("token:  -%s\n",yytext); return tret; }
 void	  { if (DEBUG) printf("token:  -%s\n",yytext); return tvoid; }
 int       { if (DEBUG) printf("token:  -%s\n",yytext); return tint; }
@@ -67,7 +73,6 @@ char      { if (DEBUG) printf("token:  -%s\n",yytext); return tchar; }
 else      { if (DEBUG) printf("token:  -%s\n",yytext); return telse; }
 if        { if (DEBUG) printf("token:  -%s\n",yytext); return tif; }
 for       { if (DEBUG) printf("token:  -%s\n",yytext); return tfor; }
-while     { if (DEBUG) printf("token:  -%s\n",yytext); return twhile; }
 "<"       { if (DEBUG) printf("token:  -%s\n",yytext); return tlt; }
 ">"       { if (DEBUG) printf("token:  -%s\n",yytext); return tgt; }
 "<="      { if (DEBUG) printf("token:  -%s\n",yytext); return tle; }
