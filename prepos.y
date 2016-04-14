@@ -155,10 +155,10 @@ SL 	: SL S		 				{}
 S	: tprintf		 			{}
 	| tscanf 		 			{}
 	| select		 			{}
-	/* while and for will become iteration */ 
-	| twhile '(' cond ')' block			{}
-	| tfor '(' ')' block				{}
+	| loop			 			{}
 	| tid tassign expr ';'				{}
+	/* below is needed for loops assignment */
+	| tid tassign expr 				{}
 	| tret tnum ';'					{}
 	| error ';'					{}
 	;
@@ -172,13 +172,19 @@ select	: tif '(' cond ')' block			{}
 	| tif '(' cond ')' block telse block		{}
 	;
 
-/* condition may need to expand to help cover &&, ||, ! */
+/* condition needs to allow for no semicolon to work with looping */
 cond	: expr relop expr				{}
+	| expr relop expr ';'				{}
 	;
 
 relop 	: tlt {} | tgt {} | tle {} | tge {} | teq {} | tne {} ;
 
 /* logop 	: tor {} | tand {} | tnot {} ; */
+
+loop	: twhile block					{}
+	/* the semicolons are handled by rules above */
+	| tfor '(' S  cond  S ')' block 		{}
+	;
 
 expr 	: expr '+' term					{}
 	| expr '-' term					{}

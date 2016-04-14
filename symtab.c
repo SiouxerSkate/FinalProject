@@ -64,7 +64,7 @@ void showtab()
    else
     printf(" uninitialized ");
    if (symtab[i].stype == 11 || symtab[i].stype == 22 || symtab[i].stype == 33)
-    printf("bound: ");
+    printf("bound: %d", symtab[i].ssize);
    puts(""); 
  }  
 }
