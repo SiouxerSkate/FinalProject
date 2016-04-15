@@ -19,7 +19,7 @@ typedef struct
 
 
 int lineno = 1;
-int DEBUG = TRUE;
+int DEBUG = FALSE;
     
 %}
 
@@ -33,7 +33,7 @@ W         [ \t\r]
 
 \#(.*)\n		         { 
     				    if (DEBUG) printf("header:  -%s\n",yytext);
-				    strcpy(yylval.thestr,yytext);i
+				    strcpy(yylval.thestr,yytext);
 				    lineno++; 
 				    return theader;
 				 }
@@ -95,20 +95,12 @@ for       { if (DEBUG) printf("token:  -%s\n",yytext); return tfor; }
                         if (DEBUG) printf("tnum-float:  -%s\n", yytext);
                         yylval.fval = atof(yytext);
 			yylval.ttype = 20;
-			/* 
-			   checks for array in parser and if 
-			   parser matches array sets type there
-			*/
 			return tnum;
                      }
 ('+'|'-')?{D}+       { /* signed or unsigned int */
                         if (DEBUG) printf("tnum-int:  -%s\n",yytext);
                         yylval.ival = atoi(yytext);
 			yylval.ttype = 10;
-			/*
-			   checks for array in parser and if
-			   parser matches array sets type there
-			*/
 			return tnum;
                      }
 \/\/(.*)\n           {  lineno++; } /* throws away // comments */
