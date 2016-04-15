@@ -31,9 +31,10 @@ W         [ \t\r]
 
 %%
 
-\#include{W}+(\"|\<){L}+\.{L}(\"|\>)   { 
+\#(.*)\n		         { 
     				    if (DEBUG) printf("header:  -%s\n",yytext);
-				    strcpy(yylval.thestr,yytext); 
+				    strcpy(yylval.thestr,yytext);i
+				    lineno++; 
 				    return theader;
 				 }
 
