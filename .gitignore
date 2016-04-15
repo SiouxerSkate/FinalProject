@@ -1,0 +1,6 @@
+lex.yy.c
+prepos.tab.c
+prepos.output
+prepos.tab.h
+safeC
+safeC.exe
