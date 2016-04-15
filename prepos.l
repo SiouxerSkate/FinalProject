@@ -1,5 +1,6 @@
 %{
     
+#include <string.h>
 #define TRUE        1
 #define FALSE       0
     
@@ -26,16 +27,11 @@ int DEBUG = TRUE;
 
 D         [0-9]
 L         [A-Za-z]
+W         [ \t\r]
 
 %%
 
-\#include(" ")+"<"{L}+\.{L}">"   { 
-    				    if (DEBUG) printf("header:  -%s\n",yytext);
-				    strcpy(yylval.thestr,yytext); 
-				    return theader;
-				 }
-
-\#include(" ")+\"{L}+\.{L}\"   { 
+\#include{W}+(\"|\<){L}+\.{L}(\"|\>)   { 
     				    if (DEBUG) printf("header:  -%s\n",yytext);
 				    strcpy(yylval.thestr,yytext); 
 				    return theader;
@@ -47,19 +43,13 @@ main\(.*\)         		 {
 				    return tmain;
 		   		 } 
 
-printf(" ")*\(.*\)(" ")*(";")  	 { 
+{L}+{W}*\(.*\){W}*(";")   	 { 
 				    if (DEBUG) printf("token:  -%s\n",yytext);
 				    strcpy(yylval.thestr,yytext);
-				    return tprintf; 
+				    return tfunction; 
 				 }
 
-scanf(" ")*\(.*\)(" ")*(";")   	 { 
-				    if (DEBUG) printf("token:  -%s\n",yytext);
-				    strcpy(yylval.thestr,yytext);
-				    return tscanf; 
-				 }
-
-while(" ")*\(.*\)     		 { 
+while{W}*\(.*\)     		 { 
 				    if (DEBUG) printf("token:  -%s\n",yytext); 
 				    strcpy(yylval.thestr,yytext);
 				    return twhile; 

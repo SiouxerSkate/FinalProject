@@ -32,8 +32,7 @@ typedef struct
 %token tint  
 %token tfloat  
 %token tchar  
-%token tprintf  
-%token tscanf
+%token tfunction
 %token telse
 %token tif  
 %token tfor
@@ -152,8 +151,7 @@ SL 	: SL S		 				{}
 	| S						{}
 	;
 
-S	: tprintf		 			{}
-	| tscanf 		 			{}
+S	: tfunction		 			{}
 	| select		 			{}
 	| loop			 			{}
 	| tid tassign expr ';'				{}
