@@ -221,7 +221,7 @@ SL 	: SL S		 				{}
 	| S						{}
 	;
 
-S	: tfunction		 			{}
+S	: tfunction					{}
 	| select		 			{}
 	| loop			 			{}
 	| tid tassign expr ';'				{}
@@ -237,7 +237,7 @@ S	: tfunction		 			{}
 ** should also allow for nesting of these
 */
 select	: tif '(' cond ')' block			{}
-	| tif '(' cond ')' block telse block		{}
+	| telse block					{}
 	;
 
 /* condition needs to allow for no semicolon to work with looping */
