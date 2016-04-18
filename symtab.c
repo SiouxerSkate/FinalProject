@@ -69,15 +69,20 @@ void showtab()
  }  
 }
 
-int intab( char *s)
+void intab( char *s)
 {
  int i;
+ int in = FALSE;
  for ( i = 1; i <= nsym; ++i)
  {
    if ( strcmp(symtab[i].sname, s) == 0)
-    return TRUE;
+    in = TRUE;
  }
- return FALSE;
+ if (!in)
+ {
+   printf("Variable %s not declared!\n", s);
+   exit(1);
+ }
 }
 
  int varsInitialized(void)
@@ -93,6 +98,18 @@ int intab( char *s)
      }
      return TRUE;
  }
+
+int arraybound(char *s)
+{
+ int i;
+ int in = FALSE;
+ for ( i = 1; i <= nsym; ++i)
+ {
+   if ( strcmp(symtab[i].sname, s) == 0)
+    return symtab[i].ssize;
+ }
+ return -1;  
+}
  
 int gettype( char *s)
 {
