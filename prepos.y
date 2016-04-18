@@ -19,6 +19,8 @@ typedef struct
 
 #define YYSTYPE  tstruct 
 
+FILE * fp;
+
 #include "symtab.c"
 
 %}
@@ -59,6 +61,7 @@ typedef struct
 
 p	: prog						{ 
 							  printf("Master of C!\n");
+							  fprintf(fp, "\n}");
 							  showtab(); 
 							}
 	;
@@ -72,7 +75,9 @@ prog	: header main '{' '}'				{ printf("empty program\n"); }
 
 /* includes header files to be transfered over during code generation */
 header	: /* no headers */
-	| theader header				{ printf("%s", $1.thestr); }
+	| theader header				{ printf("%s", $1.thestr); 
+							  fprintf(fp, "%s\n", $1.thestr);
+							}
 	;
 
 /* should we also add constants and defines? */
@@ -81,8 +86,12 @@ header	: /* no headers */
 ** main's definition can include int or void as return type
 ** tmain includes entire string (e.g. main(int argc, char *argv[]) for code generation
 */
-main	: tint tmain					{ printf("int %s\n{\n", $2.thestr); }
-	| tvoid tmain					{ printf("void %s\n{\n", $2.thestr); }
+main	: tint tmain					{ printf("int %s\n{\n", $2.thestr);
+							  fprintf(fp, "int %s\n{\n", $2.thestr);
+							 }
+	| tvoid tmain					{ printf("void %s\n{\n", $2.thestr);
+							  fprintf(fp, "void %s\n{\n", $2.thestr);
+							 }
 	;
 
 /* if declarations exist, they will always be above statements */
@@ -224,7 +233,7 @@ SL 	: SL S		 				{}
 S	: tfunction					{}
 	| select		 			{}
 	| loop			 			{}
-	| tid tassign expr ';'				{}
+	| tid tassign expr ';'				{intab($1.thestr);}
         | assignarray					{}
 	/* below is needed for loops assignment */
 	| tid tassign expr 				{}
@@ -252,7 +261,7 @@ tnumlist: tnumlist',' tnum
         | tnum
 	;
 
-assignarray: tid '[' tnum ']'tassign tnumlist';'	{
+assignarray: tid '[' tnum ']'tassign tnum';'	{
 							  intab($1.thestr);
 							  int type;
 							  type = gettype($1.thestr);
@@ -357,8 +366,10 @@ factor	: tnum						{}
 
 main()
 {
+    fp = fopen("target.c", "w+");
     setuptab();
     yyparse();
     printf("---------------------------\n");
+    fclose(fp);
 }
 
