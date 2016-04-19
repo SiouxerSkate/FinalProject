@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "symtab.c"
 
 typedef struct 
 {
@@ -20,8 +20,7 @@ typedef struct
 #define YYSTYPE  tstruct 
 
 FILE * fp;
-
-#include "symtab.c"
+char filename[] = "target.c";
 
 %}
 
@@ -48,10 +47,6 @@ FILE * fp;
 %token tfalse  
 %token ttrue  
 %token tassign  
-%token tor
-%token tand
-%token tnot
-%token taddressof
 %token tstrlit  
 %token tid  
 %token tnum
@@ -75,8 +70,8 @@ prog	: header main '{' '}'				{ printf("empty program\n"); }
 
 /* includes header files to be transfered over during code generation */
 header	: /* no headers */
-	| theader header				{ printf("%s", $1.thestr); 
-							  fprintf(fp, "%s\n", $1.thestr);
+	| header theader				{  
+							  fprintf(fp, "%s", $2.thestr);
 							}
 	;
 
@@ -111,7 +106,7 @@ D	: type tid tassign tnum ';'			{
 									break;
 								case 30:
 									printf("Cannot assign int into char\n");
-									exit(1);
+									errorclosefile();
 							  }
 							}
 	| type tid tassign tchrlit ';'			{ 
@@ -120,10 +115,10 @@ D	: type tid tassign tnum ';'			{
 							  {
 								case 10:
 									printf("Cannot assign char into int\n");
-									exit(1);
+									errorclosefile();
 								case 20:
 									printf("Cannot assign char into float\n");
-									exit(1);
+									errorclosefile;
 								case 30:
 									printf("\tchar %s = %s;\n", $2.thestr, $4.thestr);
 									break;
@@ -133,7 +128,7 @@ D	: type tid tassign tnum ';'			{
 							  if ($4.ttype != 10)
 							  {
 							    printf("Array size must be an integer!\n");
-							    exit(1);
+							    errorclosefile();
 							  }
 							  if ($1.ttype == 10)  
 							     addtab($2.thestr, 11, ($4.ival-1)); //int array
@@ -152,14 +147,14 @@ D	: type tid tassign tnum ';'			{
 									break;
 								case 30:
 									printf("Cannot assign number into char array\n");
-									exit(1);
+									errorclosefile();
 							  }
 							}
         | type tid '[' tnum ']'tassign tchrlit';' 	{
 							  if ($4.ttype != 10)
 							  {
 							    printf("Array size must be an integer!\n");
-							    exit(1);
+							    errorclosefile();
 							  }
 							  if ($1.ttype == 10)  
 							     addtab($2.thestr, 11, ($4.ival-1)); //int array
@@ -172,10 +167,10 @@ D	: type tid tassign tnum ';'			{
 							  {
 								case 10:
 									printf("Cannot assign char into int array\n");
-									exit(1);
+									errorclosefile();
 								case 20:
 									printf("Cannot assign char into float array\n");
-									exit(1);
+									errorclosefile();
 								case 30:
 									printf("\tchar %s[%d] = %s;\n", $2.thestr, $4.ival, $7.thestr);
 									break;
@@ -185,7 +180,7 @@ D	: type tid tassign tnum ';'			{
 							  if ($4.ttype != 10)
 							  {
 							    printf("Array size must be an integer!\n");
-							    exit(1);
+							    errorclosefile();
 							  }
 							  if ($1.ttype == 10)  
 							     addtab($2.thestr, 11, ($4.ival-1)); //int array
@@ -198,16 +193,16 @@ D	: type tid tassign tnum ';'			{
 							  {
 								case 10:
 									printf("Cannot assign string into int array\n");
-									exit(1);
+									errorclosefile();
 								case 20:
 									printf("Cannot assign string into float array\n");
-									exit(1);
+									errorclosefile();
 								case 30:
 									printf("\tchar %s[%d] = %s;\n", $2.thestr, $4.ival, $7.thestr);
 									if (strlen($7.thestr) > $4.ival)
 									{
 										printf("String literal larger than char array size\n");
-										exit(1);
+										errorclosefile();
 									}
 									break;
 							  }
@@ -272,19 +267,19 @@ assignarray: tid '[' tnum ']'tassign tnum';'	{
 							  else
 							  {
 							    printf("%s is not an array!\n", $1.thestr);
-							    exit(1);
+							    errorclosefile();
 							  }
 							  if ($4.ttype != 10)
 							  {
 							    printf("Array size must be an integer!\n");
-							    exit(1);
+							    errorclosefile();
 							  }
 							  int bound;
 							  bound = arraybound($1.thestr);
 							  if ($3.ival > bound)
 							  {
 							    printf("Index %d out of bounds. %s has bound %d.\n", $3.ival, $1.thestr, bound);
-							    exit(1);
+							    errorclosefile();
 							  }			
 							  switch(type)
 							  {
@@ -296,7 +291,7 @@ assignarray: tid '[' tnum ']'tassign tnum';'	{
 									break;
 								case 33:
 									printf("Cannot assign number into char array\n");
-									exit(1);
+									errorclosefile();
 							  }
 							 }
         | tid '[' tnum ']'tassign tchrlit';' 	{
@@ -310,28 +305,28 @@ assignarray: tid '[' tnum ']'tassign tnum';'	{
 							  else
 							  {
 							    printf("%s is not an array!\n", $1.thestr);
-							    exit(1);
+							    errorclosefile();
 							  }
 							  if ($4.ttype != 10)
 							  {
 							    printf("Array size must be an integer!\n");
-							    exit(1);
+							    errorclosefile();
 							  }
 							  int bound;
 							  bound = arraybound($1.thestr);
 							  if ($3.ival > bound)
 							  {
 							    printf("Index %d out of bounds. %s has bound %d.\n", $3.ival, $1.thestr, bound);
-							    exit(1);
+							    errorclosefile();
 							  }			
 							  switch(type)
 							  {
 								case 11:
 									printf("Cannot assign char into int array\n");
-									exit(1);
+									errorclosefile();
 								case 22:
 									printf("Cannot assign char into float array\n");
-									exit(1);
+									errorclosefile();
 								case 33:
 									printf("\tchar %s[%d] = %s;\n", $1.thestr, $3.ival, $6.thestr);
 									break;
@@ -339,7 +334,6 @@ assignarray: tid '[' tnum ']'tassign tnum';'	{
 					 	}
 
 	;
-/* logop 	: tor {} | tand {} | tnot {} ; */
 
 loop	: twhile block					{}
 	/* the semicolons are handled by rules above */
@@ -366,10 +360,16 @@ factor	: tnum						{}
 
 main()
 {
-    fp = fopen("target.c", "w+");
+    fp = fopen(filename, "w+");
     setuptab();
     yyparse();
     printf("---------------------------\n");
     fclose(fp);
 }
 
+int errorclosefile()
+{
+	remove(filename);
+	fclose(fp);
+	exit(1);
+}
