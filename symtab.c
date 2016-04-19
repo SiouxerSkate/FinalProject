@@ -81,7 +81,7 @@ void intab( char *s)
  if (!in)
  {
    printf("Variable %s not declared!\n", s);
-   exit(1);
+   errorclosefile();
  }
 }
 
@@ -93,7 +93,7 @@ void intab( char *s)
         if (symtab[i].binit == FALSE)
         {
             printf("What are you thinking!? Initialize your variables!!!!\n");
-            exit(ERROR_NOT_INIT);
+            errorclosefile();
         }
      }
      return TRUE;
