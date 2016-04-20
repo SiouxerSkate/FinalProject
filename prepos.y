@@ -13,6 +13,7 @@ typedef struct
  int ival;
  float fval;
  char cval;
+ char numlist[100]; /*for assigning list of numbers to arrays, i just chose an arbitrary # for now */
  int arrayBound;
  int ttype;
 }tstruct ; 
@@ -75,8 +76,8 @@ prog	: header main '{' '}'				{ printf("empty program\n"); }
 
 /* includes header files to be transfered over during code generation */
 header	: /* no headers */
-	| theader header				{ printf("%s", $1.thestr); 
-							  fprintf(fp, "%s\n", $1.thestr);
+	| header theader				{ printf("%s", $2.thestr); 
+							  fprintf(fp, "%s", $2.thestr);
 							}
 	;
 
@@ -104,10 +105,10 @@ D	: type tid tassign tnum ';'			{
 							  switch($1.ttype)
 							  {
 								case 10:
-									printf("\tint %s = %d;\n", $2.thestr, $4.ival);
+									fprintf(fp, "\tint %s = %d;\n", $2.thestr, $4.ival);
 									break;
 								case 20:
-									printf("\tfloat %s = %f;\n", $2.thestr, $4.fval);
+									fprintf(fp, "\tfloat %s = %f;\n", $2.thestr, $4.fval);
 									break;
 								case 30:
 									printf("Cannot assign int into char\n");
@@ -125,7 +126,7 @@ D	: type tid tassign tnum ';'			{
 									printf("Cannot assign char into float\n");
 									exit(1);
 								case 30:
-									printf("\tchar %s = %s;\n", $2.thestr, $4.thestr);
+									fprintf(fp,"\tchar %s = %s;\n", $2.thestr, $4.thestr);
 									break;
 							  }
 							}
@@ -145,10 +146,12 @@ D	: type tid tassign tnum ';'			{
 							  switch($1.ttype)
 							  {
 								case 10:
-									printf("\tint %s[%d] = %d;\n", $2.thestr, $4.ival, $7.ival);
+									printf("\tint %s[%d] = %s;\n", $2.thestr, $4.ival, $7.numlist);
+									fprintf(fp, "\tint %s[%d] = %s;\n", $2.thestr, $4.ival, $7.numlist);
 									break;
 								case 20:
-									printf("\tfloat %s[%d] = %f;\n", $2.thestr, $4.ival, $7.fval);
+									printf("\tfloat %s[%d] = %s;\n", $2.thestr, $4.ival, $7.numlist);
+									fprintf(fp, "\tfloat %s[%d] = %s;\n", $2.thestr, $4.ival, $7.numlist);
 									break;
 								case 30:
 									printf("Cannot assign number into char array\n");
@@ -178,6 +181,7 @@ D	: type tid tassign tnum ';'			{
 									exit(1);
 								case 30:
 									printf("\tchar %s[%d] = %s;\n", $2.thestr, $4.ival, $7.thestr);
+									fprintf(fp, "\tchar %s[%d] = %s;\n", $2.thestr, $4.ival, $7.thestr);
 									break;
 							  }
 							 }
@@ -204,6 +208,7 @@ D	: type tid tassign tnum ';'			{
 									exit(1);
 								case 30:
 									printf("\tchar %s[%d] = %s;\n", $2.thestr, $4.ival, $7.thestr);
+								  	fprintf(fp, "\tchar %s[%d] = %s;\n", $2.thestr, $4.ival, $7.thestr);
 									if (strlen($7.thestr) > $4.ival)
 									{
 										printf("String literal larger than char array size\n");
@@ -227,12 +232,13 @@ block	: '{' SL '}'					{}
 	;
 
 SL 	: SL S		 				{}
-	| S						{}
+	| S						{fprintf(fp, "\n");}
 	;
 
 S	: tfunction					{}
 	| select		 			{}
 	| loop			 			{}
+	| tid tassign tchrlit ';'			{intab($1.thestr); fprintf(fp, "\t%s = %s\n", $1.thestr, $3.thestr);}
 	| tid tassign expr ';'				{intab($1.thestr);}
         | assignarray					{}
 	/* below is needed for loops assignment */
@@ -257,30 +263,83 @@ cond	: expr relop expr				{}
 
 relop 	: tlt {} | tgt {} | tle {} | tge {} | teq {} | tne {} ;
 
-tnumlist: tnumlist',' tnum
-        | tnum
+tnumlist: tnumlist',' tnum				{
+							  strcat($$.numlist, ", ");
+							  if ($3.ttype == 10)
+							  {
+							    sprintf($3.numlist, "%d", $3.ival);
+							    strcat($$.numlist, $3.numlist);
+							  }
+							  else if ($3.ttype == 20)
+							  {
+							    sprintf($3.numlist, "%f", $3.fval);
+							    strcat($$.numlist, $3.numlist);
+							  }
+							}
+        | tnum						{
+							  if ($1.ttype == 10)
+							    sprintf($$.numlist, "%d", $1.ival);
+							  else if ($1.ttype == 20)
+							    sprintf($$.numlist, "%f", $1.fval);
+							}
 	;
 
-assignarray: tid '[' tnum ']'tassign tnum';'	{
+assignarray: tid '[' tid ']'tassign tnum';'	{
 							  intab($1.thestr);
 							  int type;
 							  type = gettype($1.thestr);
-							  if(type == 11 || type == 22 || type == 33)
-							  {
-							    //placeholder for code generation
-							  }
-							  else
+							  if(type != 11 && type != 22 && type != 33)
 							  {
 							    printf("%s is not an array!\n", $1.thestr);
 							    exit(1);
 							  }
-							  if ($4.ttype != 10)
+							  int indextype;
+							  indextype = gettype($3.thestr);
+							  if (indextype != 10)
 							  {
 							    printf("Array size must be an integer!\n");
 							    exit(1);
 							  }
 							  int bound;
 							  bound = arraybound($1.thestr);
+
+							  switch(type)
+							  {
+							    case 11:
+								fprintf(fp, "\tif (%s > %d)\n\t{\n\t\tprintf(\"Error: index %d out of bounds. %s has bound %d.\\n\");\n", $3.thestr, bound, $3.ival, $3.thestr, bound);
+								fprintf(fp, "\t\texit(1);\n\t}\n");
+							    	fprintf(fp, "\tint %s[%s] = %d;\n", $1.thestr, $3.thestr, $6.ival);
+								break;
+							    
+							    case 22:
+								fprintf(fp, "\tif (%s > %d)\n\t{\n\t\tprintf(\"Error: index %d out of bounds. %s has bound %d.\\n\");\n", $3.thestr, bound, $3.ival, $3.thestr, bound);
+								fprintf(fp, "\t\texit(1);\n\t}\n");
+							    	fprintf(fp, "\tfloat %s[%s] = %f;\n", $1.thestr, $3.thestr, $6.fval);
+								break;
+							    
+							    case 33:
+							    	printf("Cannot assign number into char array\n");
+							    	exit(1);
+								break;
+							  }
+						}
+	| tid '[' tnum ']'tassign tnum';'	{
+							  intab($1.thestr);
+							  int type;
+							  type = gettype($1.thestr);
+							  if(type != 11 && type != 22 && type != 33)
+							  {
+							    printf("%s is not an array!\n", $1.thestr);
+							    exit(1);
+							  }
+							  if ($3.ttype != 10)
+							  {
+							    printf("Array size must be an integer!\n");
+							    exit(1);
+							  }
+							  int bound;
+							  bound = arraybound($1.thestr);
+							  printf("bound: %d\n", bound);
 							  if ($3.ival > bound)
 							  {
 							    printf("Index %d out of bounds. %s has bound %d.\n", $3.ival, $1.thestr, bound);
@@ -288,31 +347,31 @@ assignarray: tid '[' tnum ']'tassign tnum';'	{
 							  }			
 							  switch(type)
 							  {
-								case 11:
-									printf("\tint %s[%d] = %d;\n", $1.thestr, $3.ival, $6.ival);
-									break;
-								case 22:
-									printf("\tfloat %s[%d] = %f;\n", $1.thestr, $3.ival, $6.fval);
-									break;
-								case 33:
-									printf("Cannot assign number into char array\n");
-									exit(1);
+							    case 11:
+							    	fprintf(fp, "\tint %s[%d] = %d;\n", $1.thestr, $3.ival, $6.ival);
+								break;
+							    
+							    case 22:
+							   	fprintf(fp, "\tfloat %s[%d] = %f;\n", $1.thestr, $3.ival, $6.fval);
+								break;
+							    
+							    case 33:
+							   	printf("Cannot assign number into char array\n");
+								break;
 							  }
-							 }
+						}
         | tid '[' tnum ']'tassign tchrlit';' 	{
 							  intab($1.thestr);
 							  int type;
 							  type = gettype($1.thestr);
-							  if(type == 11 || type == 22 || type == 33)
-							  {
-							    //placeholder for code generation
-							  }
-							  else
+							  if(type != 11 && type != 22 && type != 33)
 							  {
 							    printf("%s is not an array!\n", $1.thestr);
 							    exit(1);
 							  }
-							  if ($4.ttype != 10)
+							  int indextype;
+							  indextype = gettype($3.thestr);
+							  if (indextype != 10)
 							  {
 							    printf("Array size must be an integer!\n");
 							    exit(1);
@@ -323,18 +382,59 @@ assignarray: tid '[' tnum ']'tassign tnum';'	{
 							  {
 							    printf("Index %d out of bounds. %s has bound %d.\n", $3.ival, $1.thestr, bound);
 							    exit(1);
-							  }			
+							  }
 							  switch(type)
 							  {
-								case 11:
-									printf("Cannot assign char into int array\n");
-									exit(1);
-								case 22:
-									printf("Cannot assign char into float array\n");
-									exit(1);
-								case 33:
-									printf("\tchar %s[%d] = %s;\n", $1.thestr, $3.ival, $6.thestr);
-									break;
+							    case 11:
+							    	printf("Cannot assign char into int array\n");
+							    	exit(1);
+								break;
+							    
+							    case 22:
+							    	printf("Cannot assign char into float array\n");
+							    	exit(1);
+								break;
+							    
+							    case 33:
+							    	fprintf(fp, "\tchar %s[%d] = %s;\n", $1.thestr, $3.ival, $6.thestr);
+								break;
+							  }
+						}			
+        | tid '[' tid ']'tassign tchrlit';' 	{
+							  intab($1.thestr);
+							  int type;
+							  type = gettype($1.thestr);
+							  if(type != 11 && type != 22 && type != 33)
+							  {
+							    printf("%s is not an array!\n", $1.thestr);
+							    exit(1);
+							  }
+							  int indextype;
+							  indextype = gettype($3.thestr);
+							  if (indextype != 10)
+							  {
+							    printf("Array size must be an integer!\n");
+							    exit(1);
+							  }
+							  int bound;
+							  bound = arraybound($1.thestr);
+							  switch(type)
+							  {
+							    case 11:
+							    	printf("Cannot assign char into int array\n");
+							    	exit(1);
+								break;
+							    
+							    case 22:
+							    	printf("Cannot assign char into float array\n");
+							    	exit(1);
+								break;
+							    
+							    case 33:
+								fprintf(fp, "\tif (%s > %d)\n\t{\n\t\tprintf(\"Error: index %d out of bounds. %s has bound %d.\\n\");\n", $3.thestr, bound, $3.ival, $3.thestr, bound);
+								fprintf(fp, "\t\texit(1);\n\t}\n");
+							    	fprintf(fp, "\tchar %s[%d] = %s;\n", $1.thestr, $3.ival, $6.thestr);
+								break;
 							  }
 					 	}
 
