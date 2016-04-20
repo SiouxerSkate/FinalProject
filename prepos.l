@@ -10,6 +10,7 @@ typedef struct
     int   ival;
     float fval;
     char  cval;
+    char numlist[100];
     int   arrayBound;
     int   ttype;
 }tstruct ;
