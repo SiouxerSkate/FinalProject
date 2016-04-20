@@ -20,7 +20,7 @@ typedef struct
 
 
 int lineno = 1;
-int DEBUG = FALSE;
+int DEBUG = TRUE;
     
 %}
 
@@ -72,10 +72,6 @@ for       { if (DEBUG) printf("token:  -%s\n",yytext); return tfor; }
 "=="      { if (DEBUG) printf("token:  -%s\n",yytext); return teq; }
 "!="      { if (DEBUG) printf("token:  -%s\n",yytext); return tne; }
 "="       { if (DEBUG) printf("token:  -%s\n",yytext); return tassign; }
-"||"      { if (DEBUG) printf("token:  -%s\n",yytext); return tor; }
-"&&"      { if (DEBUG) printf("token:  -%s\n",yytext); return tand; }
-"!"       { if (DEBUG) printf("token:  -%s\n",yytext); return tnot; }
-"&"       { if (DEBUG) printf("token:  -%s\n",yytext); return taddressof; }
 
 \"([^"]*)\"          {  
     			if (DEBUG) printf("strlit:  -%s\n",yytext); 
@@ -120,5 +116,5 @@ for       { if (DEBUG) printf("token:  -%s\n",yytext); return tfor; }
 yyerror(char* s)
 {
 	printf("%s at line %d\n", s, yylineno);
-	exit(1);
+	errorclosefile();
 }
