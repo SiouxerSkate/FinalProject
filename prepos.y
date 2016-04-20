@@ -414,18 +414,6 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 							    	fprintf(fp, "\tchar %s[%d] = %s;\n", $1.thestr, $3.ival, $6.thestr);
 								break;
 							  }			
-							  switch(type)
-							  {
-								case 11:
-									printf("Cannot assign char into int array\n");
-									errorclosefile();
-								case 22:
-									printf("Cannot assign char into float array\n");
-									errorclosefile();
-								case 33:
-									printf("\tchar %s[%d] = %s;\n", $1.thestr, $3.ival, $6.thestr);
-									break;
-							  }
 					 	}
 
 	;
