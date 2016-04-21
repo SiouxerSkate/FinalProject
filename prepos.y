@@ -221,11 +221,11 @@ SL 	: SL S		 				{}
 S	: tfunction					{ fprintf(fp, "\t%s\n", $1.thestr); }
 	| select		 			{}
 	| loop			 			{}
-	| tid tassign tchrlit ';'			{intab($1.thestr); fprintf(fp, "\t%s = %s\n", $1.thestr, $3.thestr);}
-	| tid tassign expr ';'				{intab($1.thestr);}
+	| tid tassign tchrlit ';'			{intab($1.thestr); fprintf(fp, "\t%s = %s;\n", $1.thestr, $3.thestr);}
+	| tid tassign expr ';'				{intab($1.thestr); fprintf(fp, "\t%s = %s;\n", $1.thestr, $3.thestr);}
 	| tid tassign tfunction				{ fprintf(fp, "\t%s = %s\n", $1.thestr, $3.thestr); }
         | assignarray					{}
-	| tid tassign expr 				{}
+	| tid tassign expr 				{fprintf(fp, "\t%s = %s\n", $1.thestr, $3.thestr);}
 	| tret tnum ';'					{ fprintf(fp, "return %d;\n", $2.ival); }
 	| error ';'					{}
 	;
@@ -286,13 +286,13 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 							    case 11:
 								fprintf(fp, "\tif (%s > %d)\n\t{\n\t\tprintf(\"Error: index %d out of bounds. %s has bound %d.\\n\");\n", $3.thestr, bound, $3.ival, $3.thestr, bound);
 								fprintf(fp, "\t\texit(1);\n\t}\n");
-							    	fprintf(fp, "\tint %s[%s] = %d;\n", $1.thestr, $3.thestr, $6.ival);
+							    	fprintf(fp, "\t%s[%s] = %d;\n", $1.thestr, $3.thestr, $6.ival);
 								break;
 							    
 							    case 22:
 								fprintf(fp, "\tif (%s > %d)\n\t{\n\t\tprintf(\"Error: index %d out of bounds. %s has bound %d.\\n\");\n", $3.thestr, bound, $3.ival, $3.thestr, bound);
 								fprintf(fp, "\t\texit(1);\n\t}\n");
-							    	fprintf(fp, "\tfloat %s[%s] = %f;\n", $1.thestr, $3.thestr, $6.fval);
+							    	fprintf(fp, "\t%s[%s] = %f;\n", $1.thestr, $3.thestr, $6.fval);
 								break;
 							    
 							    case 33:
@@ -325,11 +325,11 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 							  switch(type)
 							  {
 							    case 11:
-							    	fprintf(fp, "\tint %s[%d] = %d;\n", $1.thestr, $3.ival, $6.ival);
+							    	fprintf(fp, "\t%s[%d] = %d;\n", $1.thestr, $3.ival, $6.ival);
 								break;
 							    
 							    case 22:
-							   	fprintf(fp, "\tfloat %s[%d] = %f;\n", $1.thestr, $3.ival, $6.fval);
+							   	fprintf(fp, "\t%s[%d] = %f;\n", $1.thestr, $3.ival, $6.fval);
 								break;
 							    
 							    case 33:
@@ -374,7 +374,7 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 								break;
 							    
 							    case 33:
-							    	fprintf(fp, "\tchar %s[%d] = %s;\n", $1.thestr, $3.ival, $6.thestr);
+							    	fprintf(fp, "\t%s[%d] = %s;\n", $1.thestr, $3.ival, $6.thestr);
 								break;
 							  }
 						}			
@@ -411,7 +411,7 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 							    case 33:
 								fprintf(fp, "\tif (%s > %d)\n\t{\n\t\tprintf(\"Error: index %d out of bounds. %s has bound %d.\\n\");\n", $3.thestr, bound, $3.ival, $3.thestr, bound);
 								fprintf(fp, "\t\texit(1);\n\t}\n");
-							    	fprintf(fp, "\tchar %s[%d] = %s;\n", $1.thestr, $3.ival, $6.thestr);
+							    	fprintf(fp, "\t%s[%s] = %s;\n", $1.thestr, $3.thestr, $6.thestr);
 								break;
 							  }			
 					 	}
@@ -423,20 +423,26 @@ loop	: twhile block					{}
 	| tfor '(' S  cond  S ')' block 		{}
 	;
 
-expr 	: expr '+' term					{}
-	| expr '-' term					{}
-	| term						{}
+expr 	: expr '+' term					{strcat($$.thestr, " + "); strcat($$.thestr, $3.thestr);}
+	| expr '-' term					{strcat($$.thestr, " - "); strcat($$.thestr, $3.thestr);}
+	| term						{sprintf($$.thestr, "%s", $1.thestr);}
 	;
 	
-term	: term '*' factor				{}
-	| term '/' factor				{}
-	| term '%' factor				{}
-	| factor					{}
+term	: term '*' factor				{strcat($$.thestr, " * "); strcat($$.thestr, $3.thestr);}
+	| term '/' factor				{strcat($$.thestr, " / "); strcat($$.thestr, $3.thestr);}
+	| term '%' factor				{strcat($$.thestr, " % "); strcat($$.thestr, $3.thestr);}
+	| factor					{sprintf($$.thestr, "%s", $1.thestr);}
 	;
 
-factor	: tnum						{}
-	| tid						{}
-	| '(' expr ')'					{}
+factor	: tnum						{
+							  if ($1.ttype == 10)
+							    sprintf($$.thestr, "%d", $1.ival);
+							  else if ($1.ttype == 20)
+							    sprintf($$.thestr, "%f", $1.fval);
+							}
+	| tid						{sprintf($$.thestr, "%s", $1.thestr);}
+
+	| '(' expr ')'					{sprintf($$.thestr, "(%s)", $2.thestr);}
 	;
 
 %%
