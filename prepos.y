@@ -74,8 +74,6 @@ header	: /* no headers */
 	| header theader				{ fprintf(fp, "%s", $2.thestr); }
 	;
 
-/* should we also add constants and defines? */
-
 /* 
 ** main's definition can include int or void as return type
 ** tmain includes entire string (e.g. main(int argc, char *argv[]) for code generation
@@ -115,7 +113,6 @@ D	: type tid tassign tnum ';'			{
 									printf("Cannot assign char into float\n");
 									errorclosefile();
 								case 30:
-									fprintf(fp,"\tchar %s = %s;\n", $2.thestr, $4.thestr);
 									fprintf(fp, "\tchar %s = %s;\n", $2.thestr, $4.thestr);
 									break;
 							  }
@@ -196,7 +193,6 @@ D	: type tid tassign tnum ';'			{
 									printf("Cannot assign string into float array\n");
 									errorclosefile();
 								case 30:
-								  	fprintf(fp, "\tchar %s[%d] = %s;\n", $2.thestr, $4.ival, $7.thestr);
 									fprintf(fp, "\tchar %s[%d] = %s;\n", $2.thestr, $4.ival, $7.thestr);
 									if (strlen($7.thestr) > $4.ival)
 									{
@@ -218,12 +214,10 @@ SL 	: SL S		 				{}
 	| S						{fprintf(fp, "\n");}
 	;
 
-S	: tfunction					{ fprintf(fp, "\t%s\n", $1.thestr); }
-	| select		 			{}
+S	: select		 			{}
 	| loop			 			{}
 	| tid tassign tchrlit ';'			{intab($1.thestr); fprintf(fp, "\t%s = %s;\n", $1.thestr, $3.thestr);}
 	| tid tassign expr ';'				{intab($1.thestr); fprintf(fp, "\t%s = %s;\n", $1.thestr, $3.thestr);}
-	| tid tassign tfunction				{ fprintf(fp, "\t%s = %s\n", $1.thestr, $3.thestr); }
         | assignarray					{}
 	| tid tassign expr 				{fprintf(fp, "\t%s = %s\n", $1.thestr, $3.thestr);}
 	| tret tnum ';'					{ fprintf(fp, "return %d;\n", $2.ival); }
