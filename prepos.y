@@ -263,14 +263,14 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 							  if(type != 11 && type != 22 && type != 33)
 							  {
 							    printf("%s is not an array!\n", $1.thestr);
-							    exit(1);
+							    errorclosefile();
 							  }
 							  int indextype;
 							  indextype = gettype($3.thestr);
 							  if (indextype != 10)
 							  {
 							    printf("Array size must be an integer!\n");
-							    exit(1);
+							    errorclosefile();
 							  }
 							  int bound;
 							  bound = arraybound($1.thestr);
@@ -291,7 +291,7 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 							    
 							    case 33:
 							    	printf("Cannot assign number into char array\n");
-							    	exit(1);
+							    	errorclosefile();
 								break;
 							  }
 						}
@@ -341,9 +341,7 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 							    printf("%s is not an array!\n", $1.thestr);
 							    errorclosefile();
 							  }
-							  int indextype;
-							  indextype = gettype($3.thestr);
-							  if (indextype != 10)
+							  if ($3.ttype != 10)
 							  {
 							    printf("Array size must be an integer!\n");
 							    errorclosefile();
