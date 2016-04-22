@@ -83,18 +83,18 @@ for       { if (DEBUG) printf("token:  -%s\n",yytext); return tfor; }
 			strcpy(yylval.thestr,yytext);
 			return tchrlit;
 		     }
-{L}({L}|{D}|'_')*    { /* C identifier */
+{L}({L}|{D}|"_")*    { /* C identifier */
                         if (DEBUG) printf("id:  -%s\n",yytext);
                         strcpy(yylval.thestr,yytext);
 			return tid;
                      }
-('+'|'-')?{D}*\.{D}+ { /* signed or unsigned float */
+("+"|"-")?{D}*\.{D}+ { /* signed or unsigned float */
                         if (DEBUG) printf("tnum-float:  -%s\n", yytext);
                         yylval.fval = atof(yytext);
 			yylval.ttype = 20;
 			return tnum;
                      }
-('+'|'-')?{D}+       { /* signed or unsigned int */
+("+"|"-")?{D}+       { /* signed or unsigned int */
                         if (DEBUG) printf("tnum-int:  -%s\n",yytext);
                         yylval.ival = atoi(yytext);
 			yylval.ttype = 10;
