@@ -22,6 +22,8 @@ typedef struct
 
 FILE * fp;
 char filename[] = "target.c";
+char temp[VAR_SIZE];
+int level = 0;
 
 %}
 
@@ -206,21 +208,26 @@ D	: type tid tassign tnum ';'			{
 
 type	: tint {$$.ttype = 10;} | tfloat {$$.ttype = 20;} | tchar {$$.ttype = 30;} ;			
 
-block	: '{' SL '}'					{}
-	| S						{}
+block	: openpar S closepar				{sprintf($$.thestr, "\t{\n\t\t%s\n\t}\n", $2.thestr);}
 	;
 
-SL 	: SL S		 				{}
-	| S						{fprintf(fp, "\n");}
+openpar : '{'						{level++;}
+	;
+
+closepar: '}'						{level--;}
+	;
+
+SL 	: SL S		 				{fprintf( fp, "%s", $2.thestr);}
+	| S						{fprintf(fp , "\n");fprintf(fp, "%s", $1.thestr);}
 	;
 
 S	: select		 			{}
 	| loop			 			{}
-	| tid tassign tchrlit ';'			{intab($1.thestr); fprintf(fp, "\t%s = %s;\n", $1.thestr, $3.thestr);}
-	| tid tassign expr ';'				{intab($1.thestr); fprintf(fp, "\t%s = %s;\n", $1.thestr, $3.thestr);}
+	| tid tassign tchrlit ';'			{intab($1.thestr); sprintf($$.thestr, "\t%s = %s;\n", $1.thestr, $3.thestr);}
+	| tid tassign expr ';'				{intab($1.thestr); sprintf($$.thestr, "\t%s = %s;\n", $1.thestr, $3.thestr);}
         | assignarray					{}
-	| tid tassign expr 				{fprintf(fp, "\t%s = %s\n", $1.thestr, $3.thestr);}
-	| tret tnum ';'					{ fprintf(fp, "return %d;\n", $2.ival); }
+	| tid tassign expr 				{sprintf($$.thestr, "\t%s = %s\n", $1.thestr, $3.thestr);}
+	| tret tnum ';'					{sprintf($$.thestr, "return %d;\n", $2.ival); }
 	| error ';'					{}
 	;
 
@@ -274,19 +281,19 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 							  }
 							  int bound;
 							  bound = arraybound($1.thestr);
-
+							  char intf[] = "%d";
 							  switch(type)
 							  {
 							    case 11:
-								fprintf(fp, "\tif (%s > %d)\n\t{\n\t\tprintf(\"Error: index %d out of bounds. %s has bound %d.\\n\");\n", $3.thestr, bound, $3.ival, $3.thestr, bound);
-								fprintf(fp, "\t\texit(1);\n\t}\n");
-							    	fprintf(fp, "\t%s[%s] = %d;\n", $1.thestr, $3.thestr, $6.ival);
+								sprintf($$.thestr, "\tif (%s > %d)\n\t{\n\t\tprintf(\"Error: index %s out of bounds. %s has bound %d.\\n\", %s);\n", $3.thestr, bound, intf, $1.thestr, bound, $3.thestr);
+								sprintf(temp, "\t\texit(1);\n\t}\n"); strcat($$.thestr, temp);
+							    	sprintf(temp, "\t%s[%s] = %d;\n", $1.thestr, $3.thestr, $6.ival); strcat($$.thestr, temp);
 								break;
 							    
 							    case 22:
-								fprintf(fp, "\tif (%s > %d)\n\t{\n\t\tprintf(\"Error: index %d out of bounds. %s has bound %d.\\n\");\n", $3.thestr, bound, $3.ival, $3.thestr, bound);
-								fprintf(fp, "\t\texit(1);\n\t}\n");
-							    	fprintf(fp, "\t%s[%s] = %f;\n", $1.thestr, $3.thestr, $6.fval);
+								sprintf($$.thestr, "\tif (%s > %d)\n\t{\n\t\tprintf(\"Error: index %s out of bounds. %s has bound %d.\\n\", %s);\n", $3.thestr, bound, intf, $1.thestr, bound, $3.thestr);
+								sprintf(temp, "\t\texit(1);\n\t}\n"); strcat($$.thestr, temp);
+							    	sprintf(temp, "\t%s[%s] = %d;\n", $1.thestr, $3.thestr, $6.ival); strcat($$.thestr, temp);
 								break;
 							    
 							    case 33:
@@ -319,11 +326,11 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 							  switch(type)
 							  {
 							    case 11:
-							    	fprintf(fp, "\t%s[%d] = %d;\n", $1.thestr, $3.ival, $6.ival);
+							    	sprintf($$.thestr, "\t%s[%d] = %d;\n", $1.thestr, $3.ival, $6.ival);
 								break;
 							    
 							    case 22:
-							   	fprintf(fp, "\t%s[%d] = %f;\n", $1.thestr, $3.ival, $6.fval);
+							   	sprintf($$.thestr, "\t%s[%d] = %f;\n", $1.thestr, $3.ival, $6.fval);
 								break;
 							    
 							    case 33:
@@ -366,7 +373,7 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 								break;
 							    
 							    case 33:
-							    	fprintf(fp, "\t%s[%d] = %s;\n", $1.thestr, $3.ival, $6.thestr);
+							    	sprintf($$.thestr, "\t%s[%d] = %s;\n", $1.thestr, $3.ival, $6.thestr);
 								break;
 							  }
 						}			
@@ -388,6 +395,7 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 							  }
 							  int bound;
 							  bound = arraybound($1.thestr);
+							  char intf[] = "%d";
 							  switch(type)
 							  {
 							    case 11:
@@ -401,16 +409,16 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 								break;
 							    
 							    case 33:
-								fprintf(fp, "\tif (%s > %d)\n\t{\n\t\tprintf(\"Error: index %d out of bounds. %s has bound %d.\\n\");\n", $3.thestr, bound, $3.ival, $3.thestr, bound);
-								fprintf(fp, "\t\texit(1);\n\t}\n");
-							    	fprintf(fp, "\t%s[%s] = %s;\n", $1.thestr, $3.thestr, $6.thestr);
+								sprintf($$.thestr, "\tif (%s > %d)\n\t{\n\t\tprintf(\"Error: index %d out of bounds. %s has bound %d.\\n\", %s);\n", $3.thestr, bound, intf, $1.thestr, bound, $3.thestr);
+								sprintf(temp, "\t\texit(1);\n\t}\n"); strcat($$.thestr, temp);
+							    	sprintf(temp, "\t%s[%s] = %s;\n", $1.thestr, $3.thestr, $6.thestr); strcat($$.thestr, temp);
 								break;
 							  }			
 					 	}
 
 	;
 
-loop	: twhile block					{}
+loop	: twhile block					{sprintf($$.thestr, "\t%s\n%s\n", $1.thestr, $2.thestr);}
 	/* the semicolons are handled by rules above */
 	| tfor '(' S  cond  S ')' block 		{}
 	;
