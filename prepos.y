@@ -208,7 +208,7 @@ D	: type tid tassign tnum ';'			{
 
 type	: tint {$$.ttype = 10;} | tfloat {$$.ttype = 20;} | tchar {$$.ttype = 30;} ;			
 
-block	: openpar S closepar				{sprintf($$.thestr, "\t{\n\t\t%s\n\t}\n", $2.thestr);}
+block	: openpar S closepar				{sprintf($$.thestr, "{\n\t\t%s\n\t}", $2.thestr);}
 	;
 
 openpar : '{'						{level++;}
@@ -217,30 +217,30 @@ openpar : '{'						{level++;}
 closepar: '}'						{level--;}
 	;
 
-SL 	: SL S		 				{fprintf( fp, "%s", $2.thestr);}
-	| S						{fprintf(fp , "\n");fprintf(fp, "%s", $1.thestr);}
+SL 	: SL S		 				{fprintf( fp, "\t%s\n", $2.thestr);}
+	| S						{fprintf(fp , "\n");fprintf(fp, "\t%s\n", $1.thestr);}
 	;
 
 S	: select		 			{}
 	| loop			 			{}
-	| tid tassign tchrlit ';'			{intab($1.thestr); sprintf($$.thestr, "\t%s = %s;\n", $1.thestr, $3.thestr);}
-	| tid tassign expr ';'				{intab($1.thestr); sprintf($$.thestr, "\t%s = %s;\n", $1.thestr, $3.thestr);}
+	| tid tassign tchrlit ';'			{intab($1.thestr); sprintf($$.thestr, "%s = %s;", $1.thestr, $3.thestr);}
+	| tid tassign expr ';'				{intab($1.thestr); sprintf($$.thestr, "%s = %s;", $1.thestr, $3.thestr);}
         | assignarray					{}
-	| tid tassign expr 				{sprintf($$.thestr, "\t%s = %s\n", $1.thestr, $3.thestr);}
-	| tret tnum ';'					{sprintf($$.thestr, "return %d;\n", $2.ival); }
+	| tid tassign expr 				{sprintf($$.thestr, "%s = %s", $1.thestr, $3.thestr);}
+	| tret tnum ';'					{sprintf($$.thestr, "return %d\n;", $2.ival); }
 	| error ';'					{}
 	;
 
-select	: tif '(' cond ')' block			{}
-	| telse block					{}
+select	: tif '(' cond ')' block			{sprintf($$.thestr, "if ( %s )\n\t%s", $3.thestr, $5.thestr);}
+	| telse block					{sprintf($$.thestr, "else\n\t%s",$2.thestr);}
 	;
 
 /* condition needs to allow for no semicolon to work with looping */
-cond	: expr relop expr				{}
-	| expr relop expr ';'				{}
+cond	: expr relop expr				{sprintf($$.thestr, "%s %s %s", $1.thestr, $2.thestr, $3.thestr);}
+	| expr relop expr ';'				{sprintf($$.thestr, "%s %s %s;", $1.thestr, $2.thestr, $3.thestr);}
 	;
 
-relop 	: tlt {} | tgt {} | tle {} | tge {} | teq {} | tne {} ;
+relop 	: tlt {sprintf($$.thestr, "<");} | tgt {sprintf($$.thestr, ">");} | tle {sprintf($$.thestr, "<=");} | tge {sprintf($$.thestr, ">=");} | teq {sprintf($$.thestr, "==");} | tne {sprintf($$.thestr, "!=");} ;
 
 tnumlist: tnumlist',' tnum				{
 							  strcat($$.numlist, ", ");
@@ -276,7 +276,7 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 							  indextype = gettype($3.thestr);
 							  if (indextype != 10)
 							  {
-							    printf("Array size must be an integer!\n");
+							    printf("%s: Array size must be an integer!\n", $1.thestr);
 							    errorclosefile();
 							  }
 							  int bound;
@@ -285,13 +285,13 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 							  switch(type)
 							  {
 							    case 11:
-								sprintf($$.thestr, "\tif (%s > %d)\n\t{\n\t\tprintf(\"Error: index %s out of bounds. %s has bound %d.\\n\", %s);\n", $3.thestr, bound, intf, $1.thestr, bound, $3.thestr);
+								sprintf($$.thestr, "if (%s > %d)\n\t{\n\t\tprintf(\"Error: index %s out of bounds. %s has bound %d.\\n\", %s);\n", $3.thestr, bound, intf, $1.thestr, bound, $3.thestr);
 								sprintf(temp, "\t\texit(1);\n\t}\n"); strcat($$.thestr, temp);
 							    	sprintf(temp, "\t%s[%s] = %d;\n", $1.thestr, $3.thestr, $6.ival); strcat($$.thestr, temp);
 								break;
 							    
 							    case 22:
-								sprintf($$.thestr, "\tif (%s > %d)\n\t{\n\t\tprintf(\"Error: index %s out of bounds. %s has bound %d.\\n\", %s);\n", $3.thestr, bound, intf, $1.thestr, bound, $3.thestr);
+								sprintf($$.thestr, "if (%s > %d)\n\t{\n\t\tprintf(\"Error: index %s out of bounds. %s has bound %d.\\n\", %s);\n", $3.thestr, bound, intf, $1.thestr, bound, $3.thestr);
 								sprintf(temp, "\t\texit(1);\n\t}\n"); strcat($$.thestr, temp);
 							    	sprintf(temp, "\t%s[%s] = %d;\n", $1.thestr, $3.thestr, $6.ival); strcat($$.thestr, temp);
 								break;
@@ -313,7 +313,7 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 							  }
 							  if ($3.ttype != 10)
 							  {
-							    printf("Array size must be an integer!\n");
+							    printf("%s: Array size must be an integer!\n", $1.thestr);
 							    errorclosefile();
 							  }
 							  int bound;
@@ -326,11 +326,11 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 							  switch(type)
 							  {
 							    case 11:
-							    	sprintf($$.thestr, "\t%s[%d] = %d;\n", $1.thestr, $3.ival, $6.ival);
+							    	sprintf($$.thestr, "%s[%d] = %d;", $1.thestr, $3.ival, $6.ival);
 								break;
 							    
 							    case 22:
-							   	sprintf($$.thestr, "\t%s[%d] = %f;\n", $1.thestr, $3.ival, $6.fval);
+							   	sprintf($$.thestr, "%s[%d] = %f;", $1.thestr, $3.ival, $6.fval);
 								break;
 							    
 							    case 33:
@@ -350,7 +350,7 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 							  }
 							  if ($3.ttype != 10)
 							  {
-							    printf("Array size must be an integer!\n");
+							    printf("%s: Array size must be an integer!\n", $1.thestr);
 							    errorclosefile();
 							  }
 							  int bound;
@@ -373,7 +373,7 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 								break;
 							    
 							    case 33:
-							    	sprintf($$.thestr, "\t%s[%d] = %s;\n", $1.thestr, $3.ival, $6.thestr);
+							    	sprintf($$.thestr, "%s[%d] = %s;", $1.thestr, $3.ival, $6.thestr);
 								break;
 							  }
 						}			
@@ -390,7 +390,7 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 							  indextype = gettype($3.thestr);
 							  if (indextype != 10)
 							  {
-							    printf("Array size must be an integer!\n");
+							    printf("%s: Array size must be an integer!\n", $1.thestr);
 							    errorclosefile();
 							  }
 							  int bound;
@@ -409,18 +409,18 @@ assignarray: tid '[' tid ']'tassign tnum';'	{
 								break;
 							    
 							    case 33:
-								sprintf($$.thestr, "\tif (%s > %d)\n\t{\n\t\tprintf(\"Error: index %d out of bounds. %s has bound %d.\\n\", %s);\n", $3.thestr, bound, intf, $1.thestr, bound, $3.thestr);
+								sprintf($$.thestr, "if (%s > %d)\n\t{\n\t\tprintf(\"Error: index %s out of bounds. %s has bound %d.\\n\", %s);\n", $3.thestr, bound, intf, $1.thestr, bound, $3.thestr);
 								sprintf(temp, "\t\texit(1);\n\t}\n"); strcat($$.thestr, temp);
-							    	sprintf(temp, "\t%s[%s] = %s;\n", $1.thestr, $3.thestr, $6.thestr); strcat($$.thestr, temp);
+							    	sprintf(temp, "\t%s[%s] = %d;\n", $1.thestr, $3.thestr, $6.ival); strcat($$.thestr, temp);
 								break;
 							  }			
 					 	}
 
 	;
 
-loop	: twhile block					{sprintf($$.thestr, "\t%s\n%s\n", $1.thestr, $2.thestr);}
+loop	: twhile block					{sprintf($$.thestr, "%s\n\t%s", $1.thestr, $2.thestr);}
 	/* the semicolons are handled by rules above */
-	| tfor '(' S  cond  S ')' block 		{}
+	| tfor '(' S  cond  S ')' block 		{sprintf($$.thestr, "for ( %s %s %s )\n\t%s", $3.thestr, $4.thestr, $5.thestr, $7.thestr);}
 	;
 
 expr 	: expr '+' term					{strcat($$.thestr, " + "); strcat($$.thestr, $3.thestr);}
