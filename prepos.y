@@ -196,7 +196,7 @@ D	: type tid tassign tnum ';'			{
 									errorclosefile();
 								case 30:
 									fprintf(fp, "\tchar %s[%d] = %s;\n", $2.thestr, $4.ival, $7.thestr);
-									if (strlen($7.thestr) > $4.ival)
+									if ((strlen($7.thestr) - 1) > $4.ival)
 									{
 										printf("String literal larger than char array size\n");
 										errorclosefile();
@@ -208,6 +208,7 @@ D	: type tid tassign tnum ';'			{
 
 type	: tint {$$.ttype = 10;} | tfloat {$$.ttype = 20;} | tchar {$$.ttype = 30;} ;			
 
+/* have you tried/tested it with an additional match of just S? */
 block	: openpar S closepar				{sprintf($$.thestr, "{\n\t\t%s\n\t}", $2.thestr);}
 	;
 
