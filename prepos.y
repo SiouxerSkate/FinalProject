@@ -135,12 +135,12 @@ D	: type tid tassign tnum ';'			{
 							  switch($1.ttype)
 							  {
 								case 10:
-									printf("\tint %s[%d] = %s;\n", $2.thestr, $4.ival, $7.numlist);
-									fprintf(fp, "\tint %s[%d] = %s;\n", $2.thestr, $4.ival, $7.numlist);
+									//printf("\tint %s[%d] = %s;\n", $2.thestr, $4.ival, $7.numlist);
+									fprintf(fp, "\tint %s[%d] = {%s};\n", $2.thestr, $4.ival, $7.numlist);
 									break;
 								case 20:
-									printf("\tfloat %s[%d] = %s;\n", $2.thestr, $4.ival, $7.numlist);
-									fprintf(fp, "\tfloat %s[%d] = %s;\n", $2.thestr, $4.ival, $7.numlist);
+									//printf("\tfloat %s[%d] = %s;\n", $2.thestr, $4.ival, $7.numlist);
+									fprintf(fp, "\tfloat %s[%d] = {%s};\n", $2.thestr, $4.ival, $7.numlist);
 									break;
 								case 30:
 									printf("Cannot assign number into char array\n");
@@ -210,6 +210,7 @@ type	: tint {$$.ttype = 10;} | tfloat {$$.ttype = 20;} | tchar {$$.ttype = 30;} 
 
 /* have you tried/tested it with an additional match of just S? */
 block	: openpar S closepar				{sprintf($$.thestr, "{\n\t\t%s\n\t}", $2.thestr);}
+	| S						{sprintf($$.thestr, "\t\t%s\n", $1.thestr);}
 	;
 
 openpar : '{'						{level++;}
