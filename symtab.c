@@ -28,6 +28,7 @@ struct stelem
 typedef struct stelem entry;
 
 /* global variables */
+extern int DEBUG;
 entry symtab[SIZE];
 int nsym = 0;
 
@@ -123,14 +124,14 @@ int gettype( char *s)
  if (loc > 0)
   {
    t = symtab[loc].stype;
-   printf("Get type for %s to %d\n", s, t);
+   if (DEBUG) {printf("Get type for %s to %d\n", s, t);}
   }
  if (loc <= 0)
-   printf("gettype var %s not found\n", s);
+   if (DEBUG) {printf("gettype var %s not found\n", s);}
  else if (t < 0)
-   printf("gettype var %s has bad type %d\n", s, t);
+   if (DEBUG) {printf("gettype var %s has bad type %d\n", s, t);}
  else 
-   printf("gettype var %s has type %d\n", s, t);
+   if (DEBUG) {printf("gettype var %s has type %d\n", s, t);}
  return t;
 }
 
